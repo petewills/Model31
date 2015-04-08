@@ -4,7 +4,12 @@ ROCK MODELLING
 ==============
 
 This program models a set of reservoir layers, computing reflection timeshifts and amplitudes.
-It is meant for continuous 4D seismic data. It is written in plain python.
+ - A "layer" is one rock unit, describer by a dictionary
+ - A "stack" is a set of leyers representing a 1D model
+ - A "traverse" is a set of stacks, ordered, that represents a model along a line
+ - A "model" is a set of traverses, representing vintages in 4D
+
+ It is written in plain python.
 
 
 SETUP
