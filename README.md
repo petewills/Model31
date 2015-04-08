@@ -1,6 +1,6 @@
 # Model31
 
-ROCK MODELLING test push
+ROCK MODELLING
 ==============
 
 This program models a set of reservoir layers, computing reflection timeshifts and amplitudes.
