@@ -18,12 +18,11 @@ def get_rms( series, t, gate):
     sum = 0.0
     for i in range(t0, t1):
         sum = sum + series[i] * series[i] * wgt
-        wgt = 1.0 - float(abs(tmid-i)) / (gate/2)
+        # wgt = 1.0 - float(abs(tmid-i)) / (gate/2)
         wgt = 1.0
     rms = np.sqrt(sum/(t1-t0))
 
     return rms
-
 
 
 def compose_series(N, strat, tt, DIGI):
@@ -37,39 +36,38 @@ def compose_series(N, strat, tt, DIGI):
                 tt = tt + int(dt/DIGI)
     return series, tt
 
-def add_refl( series, a, t):
+
+def add_refl(series, a, t):
     """Add a reflection to the series"""
 
     tl = int(math.floor(t))    # Small digi allows just to set one sample
     series[tl] -= a
     return series
 
-def get_refl( ru, rl):
+
+def get_refl(ru, rl):
     """amplitude and time increment"""
     a = (ru['vp']*ru['rho'] - rl['vp']*rl['rho']) / (ru['vp']*ru['rho'] + rl['vp']*rl['rho'])
-    dt = 2.0 * rl['dz']  / rl['vp'] * 1000.0
+    dt = 2.0 * rl['dz'] / rl['vp'] * 1000.0
 
     return dt, a
-
-
-
 
 
 def gassman(name, rock, f1, f2, color='y'):
     """Gassman on a given rock unit
     f1, f2 are before and after fluids """
 
-    vp, vs, rho, Kg, phi = rock['vp'], rock['vs'], rock['rho'], rock['Kg'], rock['phi']
+    vp, vs, rho, kg, phi = rock['vp'], rock['vs'], rock['rho'], rock['kg'], rock['phi']
     vp_f1, rho_f1 = f1['vp'], f1['rho']
     vp_f2, rho_f2 = f2['vp'], f2['rho']
     K1 = rho*(vp*vp - 4/3*vs*vs)
     Kf_1 = rho_f1 * vp_f1 * vp_f1
     Kf_2 = rho_f2 * vp_f2 * vp_f2
 
-    tmp = K1/(Kg-K1) - Kf_1/(Kg - Kf_1)/ phi + Kf_2/(Kg - Kf_2)/ phi
-    K2 = Kg * tmp / (1 + tmp)
+    tmp = K1/(kg - K1) - Kf_1/(Kg - Kf_1) / phi + Kf_2/(kg - Kf_2) / phi
+    K2 = kg * tmp / (1 + tmp)
 
-    rho_2 = rho + phi * ( rho_f2 - rho_f1 )
+    rho_2 = rho + phi * (rho_f2 - rho_f1)
     mu2 = rho_2 * vs * vs
 
     vp_2 = np.sqrt((K2 + 4/3 * mu2)/rho_2)
@@ -82,12 +80,13 @@ def gassman(name, rock, f1, f2, color='y'):
 
     return newrock
 
-def amp( ru, rl):
+
+def amp(ru, rl):
     a = (ru['vp']*ru['rho'] - rl['vp']*rl['rho']) / (ru['vp']*ru['rho'] + rl['vp']*rl['rho'])
     return a
 
 
-def bp( ser, spect, DIGI, phase=0 ):
+def bp(ser, spect, DIGI, phase=0):
     digi = DIGI/1000.0
     N = len(ser)
     fser = np.fft.fft(ser)
@@ -111,18 +110,19 @@ def bp( ser, spect, DIGI, phase=0 ):
         else:
             fser[i] = fser[i] * 0.0
 
-        if phase==90:
+        if phase == 90:
             re = np.real(fser[i])
             im = np.imag(fser[i])
             fser[i] = complex(im, re)
 
-    s = np.abs(fser)
+    # s = np.abs(fser)
     # plt.figure(100)
     # plt.plot(freqs, s)
     # plt.show()
     newser = scipy.real(np.fft.ifft(fser))
 
     return newser
+
 
 def reservoir(units, DIGI):
     """Build one vintage of reservoir"""
@@ -133,7 +133,6 @@ def reservoir(units, DIGI):
     for i in range(4):
         spectrum[i] = int(spectrum[i])
 
-
     tt0 = 180.0 / DIGI   # Basic "zero" for the time section
     arg = []
     for unit in units:
@@ -141,7 +140,7 @@ def reservoir(units, DIGI):
         arg.append(unit[0])
 
     trace, tt = compose_series(N, arg, tt0, DIGI)
-    trace = bp( trace, spectrum, DIGI, phase=0)
+    trace = bp(trace, spectrum, DIGI, phase=0)
 
     rmstop = get_rms(trace, tt0, gate)
     rmsbase = get_rms(trace, tt, gate)
@@ -163,9 +162,10 @@ def reservoir(units, DIGI):
         col.append(unit[0]['color'])
         totthick += float(unit[1])
 
-    res = {'trace':trace, 'tt':tt, 'rmstop':rmstop, 'rmsbase':rmsbase, 'basegate': basegate, 'topgate': topgate,
+    res = {'trace': trace, 'tt': tt, 'rmstop': rmstop, 'rmsbase': rmsbase, 'basegate': basegate, 'topgate': topgate,
            'thick': thick, 'totthick': totthick, 'color': col}
     return res
+
 
 def testgas(GAS, fluid, rock):
     """
@@ -178,23 +178,24 @@ def testgas(GAS, fluid, rock):
     cs = 0.0
     x, y, yr = [], [], []
     for i in range(ns):
-        mix = fmix( 'fluid mix', [GAS, fluid], [cs, 1.0 - cs], patchy='NO')
-        mixRock = gassman('mixrock', rock, fluid, mix )
-        y.append( mix['vp'])
-        yr.append( mixRock['vp'] )
+        mix = fmix('fluid mix', [GAS, fluid], [cs, 1.0 - cs], patchy='NO')
+        mixRock = gassman('mixrock', rock, fluid, mix)
+        y.append(mix['vp'])
+        yr.append(mixRock['vp'])
         x.append(cs)
         cs = cs + ds
 
     plt.figure(100)
-    plt.plot( x, y, 'ro-', label = 'fluid mix')
-    plt.plot( x, yr, 'bo-', label = 'mixrock')
-    plt.title( "Fluid Gas substitution into " + fluid['name'])
+    plt.plot(x, y, 'ro-', label='fluid mix')
+    plt.plot(x, yr, 'bo-', label='mixrock')
+    plt.title("Fluid Gas substitution into " + fluid['name'])
     plt.xlabel('Gas Saturation')
     plt.ylabel('Fluid P Wave Velocity')
     plt.grid()
     plt.legend()
 
-def fmix( name, components, fractions, patchy = 'NO'):
+
+def fmix(name, components, fractions, patchy='NO'):
     """Mix several fluids"""
 
     all = 0.0
@@ -216,7 +217,6 @@ def fmix( name, components, fractions, patchy = 'NO'):
     if patchy == 'NO':
         K = 1.0 / KI
 
-
     mix = components[0].copy()
     mix['vp'] = np.sqrt(K/rho)
     mix['rho'] = rho
@@ -224,8 +224,9 @@ def fmix( name, components, fractions, patchy = 'NO'):
 
     return mix
 
+
 # Create TV pairs synthetic to test the plotting
-def createTVpair(TVpath, rock, gas, fluid, Sg=[0.0,0.8], A=10000, t='', data=[], col='r'):
+def createTVpair(TVpath, rock, gas, fluid, Sg=[0.0, 0.8], A=10000, t='', data=[], col='r'):
     """
     :param TVpath: where to store the pairs
     :param rock: reservoir rock
@@ -238,14 +239,13 @@ def createTVpair(TVpath, rock, gas, fluid, Sg=[0.0,0.8], A=10000, t='', data=[],
     """
 
     f = open(TVpath, 'w')
-    delz = 1.0      # in meters
     NZ = 15
     phi = rock['phi']      # Porosity
 
-    V = []; T = []; Z=[]
+    V = []; T = []; Z = []
     currz = 0.0
     for i in range(NZ):
-        V.append(currz * phi * (Sg[1]-Sg[0]) * A)
+        V.append(currz * phi * (Sg[1] - Sg[0]) * A)
         TT0 = TT(rock, Sg[0], gas, fluid)
         TT1 = TT(rock, Sg[1], gas, fluid)
         print TT0, TT1, TT1-TT0
@@ -253,8 +253,8 @@ def createTVpair(TVpath, rock, gas, fluid, Sg=[0.0,0.8], A=10000, t='', data=[],
         Z.append(currz)
         currz = currz + 1
     plt.figure(30)
-    ax = plt.subplot(111)
-    plt.plot(V, T, col+'-o', label=t + ': A = '+ str(A) + '  Sg = ' + str(Sg[0]) + '-' + str(Sg[1]))
+    plt.subplot(111)
+    plt.plot(V, T, col+'-o', label=t + ': A = ' + str(A) + '  Sg = ' + str(Sg[0]) + '-' + str(Sg[1]))
     y = [data['TS']]
     x = [data['Vol']]
     plt.plot(x, y, col+'s', markersize=14, label=t + ' data')
@@ -266,6 +266,7 @@ def createTVpair(TVpath, rock, gas, fluid, Sg=[0.0,0.8], A=10000, t='', data=[],
 
     f.close()
 
+
 # Calculate the 2 way travel time for one meter. units are ms/m
 def TT(rock, Sg, gas, fluid):
     """
@@ -276,12 +277,11 @@ def TT(rock, Sg, gas, fluid):
     :return: Timeshift
     """
 
-    mix = fmix( 'fluid mix', [gas, fluid], [Sg, 1.0 - Sg], patchy='NO')
+    mix = fmix('fluid mix', [gas, fluid], [Sg, 1.0 - Sg], patchy='NO')
     mixRock = gassman('mixRock', rock, fluid, mix, color='y')
 
     T = 2000 * 1.0 / mixRock['vp']
     return T
-
 
 
 # Use TV pairs to analyse the time shifts, following Tim
@@ -290,6 +290,5 @@ def TVpair(TVpath):
     f = open(TVpath)
     for line in f.readline():
         print line
-
 
     f.close()
