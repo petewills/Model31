@@ -7,7 +7,7 @@ import sys
 import Model31lib as M
 import parameters as prm
 
-print 'hello'
+print 'hello1'
 model = M.setmodel()
 # Basic rock properties
 wilrich = {'name': 'wil', 'vp': 3000.0, 'vs': 1800.0, 'rho': 2400.0, 'phi': 0.05, 'dz': 0.0, 'color': 'm'}
