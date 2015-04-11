@@ -84,7 +84,7 @@ def gassman(name, rock, f1, f2, color='y'):
     Kf_1 = rho_f1 * vp_f1 * vp_f1
     Kf_2 = rho_f2 * vp_f2 * vp_f2
 
-    tmp = K1/(kg - K1) - Kf_1/(Kg - Kf_1) / phi + Kf_2/(kg - Kf_2) / phi
+    tmp = K1/(kg - K1) - Kf_1/(kg - Kf_1) / phi + Kf_2/(kg - Kf_2) / phi
     K2 = kg * tmp / (1 + tmp)
 
     rho_2 = rho + phi * (rho_f2 - rho_f1)
