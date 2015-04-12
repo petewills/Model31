@@ -5,16 +5,24 @@ import matplotlib as mp
 import sys
 
 import Model31lib as M
+import layer as L
+import stack as S
 import parameters as prm
 
-# Basic rock properties
-wilrich = {'name': 'wil', 'vp': 3000.0, 'vs': 1800.0, 'rho': 2400.0, 'phi': 0.05, 'dz': 0.0, 'color': 'm'}
-blueskyBIT = {'name': 'blBIT', 'vp': 2850.0, 'vs': 1700.0, 'rho': 2090.0, 'phi': 0.28,
-              'kg': 36.0*1000.0*1000.0*1000.0, 'dz': 28.0, 'color': 'k'}
-debolt = {'name': 'deb', 'vp': 3200.0, 'vs': 1800.0, 'rho': 2400.0, 'phi': 0.05, 'dz': 0.0, 'color': 'm'}
-H2O = {'name': 'H2O', 'vp': 1630.0, 'rho': 980.0}
-GAS = {'name': 'GAS', 'vp': 650.0, 'rho': 280.0}
-BIT = {'name': 'BIT', 'vp': 1350.0, 'rho': 940.0}
+N = 10
+dg = 0.9 / float(N)
+delz = 23.0 / float(N)
+l = [L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=0.0, dz=5.0)]
+for i in range(N-1):
+    l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=float(i+1)*dg, dz=delz))
+
+s = S.Stack(l[0], 0.0)
+for lay in l[1:]:
+    s.append(lay)
+s.display()
+s.qc()
+sys.exit()
+
 
 # Irreducible bitumen in sandstone and mix the fluids necessary
 bcut = 0.2
