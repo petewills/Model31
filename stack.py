@@ -6,17 +6,16 @@ import sys
 
 class Stack:
 
-    def __init__(self, layer, dx=10.0):
+    def __init__(self, layer,  dx=10.0):
         """
         A stack of layers at one spatial location and one time
-        :param unit: first (deepest) unit in stack:
+        :param layer: first (deepest) unit in stack:
         :param X: Location on a traverse
         :return:
         """
         self.stack = [layer]
         self.N = 1
         self.dx = dx
-        layer.display()
         self.thick = layer.unit['dz']
 
     def append(self, layer):
@@ -34,37 +33,31 @@ class Stack:
         for unit in self.stack:
             print "unit:", unit
 
-    def qc(self):
+    def qc(self, prop='sg'):
         """
         standalone plot of the stack
         :return:
         """
         fig = plt.figure(1)
         ax = fig.add_subplot(1, 1, 1)
-        self.qc_bare(ax, 0.0)
+        self.qc_bare(ax, 0.0, prop)
         plt.ylim([0, self.thick])
         plt.xlim([0, self.dx])
         plt.show()
 
-    def qc_bare(self, ax, xmin):
+    def qc_bare(self, ax, xmin, prop):
         """
         Plot the stack
         :param axis: the plot axis
         :param xmin: start distance along traverse
+        :param prop: What property do we plot?
         :return:
         """
-        print 'Stack at location: ', xmin + self.dx / 2
-        print self.stack[0].unit
+        # print 'Stack at location: ', xmin + self.dx / 2
         lower = 0.0
         for layer in self.stack:
             rect = mp.patches.Rectangle((xmin, lower), self.dx, layer.unit['dz'], color=layer.unit['color'], ec='y')
             ax.add_patch(rect)
-            print 'lower:', lower, layer.unit['dz']
             lower += layer.unit['dz']
-            # plt.xlim([0, 20])
-            # lim = r['totthick']
-            # frame1 = plt.gca()
-            # frame1.axes.get_xaxis().set_ticks([])
-
 
 

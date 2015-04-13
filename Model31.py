@@ -9,27 +9,9 @@ import layer as L
 import stack as S
 import vintage as V
 import parameters as prm
+import models as mod
 
-nx = 5
-nz = 5
-delz = 23.0 / float(nz)
-delliq = 10.0 / float(nx)
-delx = 1000 / float(nx)
-dg = 0.9 / float(nz)
-for ix in range(nx):
-    liqlev = 5.0 + float(ix - 1) * delliq
-    l = [L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=0.0, dz=liqlev)]
-    for iz in range(nz-1):
-        l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=float(iz+1)*dg, dz=delz))
-    if ix == 0:
-        s = S.Stack(l[0], dx=delx)
-    else:
-        for lay in l:
-            s.append(lay)
-    if (ix == 0):
-        v = V.Vintage(s, 0)
-    else:
-        v.append(s)
+v = mod.first( nx=8, nz=10)
 v.qc()
 sys.exit()
 

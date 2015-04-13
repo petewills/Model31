@@ -27,7 +27,7 @@ class Vintage:
         self.vintage.append(stack)
         self.N += 1
 
-    def qc(self):
+    def qc(self, prop='sg'):
         """
         plot the vintage
         :return:
@@ -36,24 +36,8 @@ class Vintage:
         ax = fig.add_subplot(1, 1, 1)
         minx = 0.0
         for s in self.vintage:
-            s.qc_bare(ax, minx)
+            s.qc_bare(ax, minx, prop)
             minx += s.dx
         plt.ylim([0, s.thick])
         plt.xlim([0, minx])
-        plt.show()
-
-        print 'Vintage at date: ', self.day
-        fig = plt.figure(1)
-        lower = 0  # lower limit in Z
-        ax = fig.add_subplot(1, 1, 1)
-        for layer in self.stack:
-            rect = mp.patches.Rectangle((0, lower), 20, layer.unit['dz'], color=layer.unit['color'], ec='y')
-            ax.add_patch(rect)
-            print 'lower:', lower, layer.unit['dz']
-            lower += layer.unit['dz']
-            # plt.xlim([0, 20])
-            # lim = r['totthick']
-            plt.ylim([0, self.thick])
-            # frame1 = plt.gca()
-            # frame1.axes.get_xaxis().set_ticks([])
         plt.show()
