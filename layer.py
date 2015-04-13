@@ -9,7 +9,6 @@ class Layer:
         self.baseunit = unit
         mixgas = M.fmix('mixgas', [gas, fluid], [sg, 1.0-sg])
         color = (sg, 0, 1 - sg)
-        print color
         self.unit = M.gassman('blGAS', unit, fluid, mixgas, color=color)
         self.unit['dz'] = dz
 
