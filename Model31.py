@@ -11,8 +11,8 @@ import vintage as V
 import parameters as prm
 import models as mod
 
-v = mod.first( nx=8, nz=20)
-v.qc(prop='rho')
+v = mod.first( nx=20, nz=10)
+v.qc(prop='vp')
 sys.exit()
 
 

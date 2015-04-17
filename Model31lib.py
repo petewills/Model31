@@ -27,6 +27,15 @@ def setmodel():
     BIT = {'name': 'BIT', 'vp': 1350.0, 'rho': 940.0}
 
 
+def autogain(trace, extragain):
+    """
+    Gained relative to maximum amplitude and multiplied by extra gain
+    :param trace: the seismic trace
+    :param extragain: extra gain to multiply by
+    :return:
+    """
+
+    return trace / np.max(np.absolute(trace)) * extragain
 
 
 def get_rms( series, t, gate):

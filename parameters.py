@@ -4,7 +4,9 @@ HOME = '/Users/peterwills/PyCharmProjects/Model31'
 TVpath = HOME + 'TVPair.dat'
 
 # All physical numbers in ms. I use small digi for hanging waves on spikes
-DIGI = 0.1
+DIGI = 0.1          # in ms
+LTRACE = 1000       # in ms
+TT0 = 180.0 / DIGI  # the sample of the top layer
 
 
 # Basic rock and fluid units

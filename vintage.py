@@ -33,14 +33,19 @@ class Vintage:
         :return:
         """
         fig = plt.figure(1)
-        ax = fig.add_subplot(1, 1, 1)
+        ax_tr = plt.subplot(1, 2, 2)
+        ax_prop = plt.subplot(1, 2, 1, sharex=ax_tr, sharey=ax_tr)
+
         minx = 0.0
         for s in self.vintage:
-            s.qc_bare(ax, minx, prop)
+            s.qc_bare(ax_prop, ax_tr, minx, prop)
             minx += s.dx
-        plt.ylim([0, s.thick])
-        plt.xlim([0, minx])
-        plt.title(self.get_title(prop))
+        ax_prop.set_ylim([0, s.thick])
+        ax_prop.set_xlim([0, minx])
+        ax_prop.set_title(self.get_title(prop))
+        ax_tr.set_ylim([0, s.thick])
+        ax_tr.set_xlim([0, minx])
+        ax_tr.set_title('Seismic traces')
         plt.show()
 
     def get_title(self, prop):
