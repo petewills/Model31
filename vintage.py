@@ -40,4 +40,23 @@ class Vintage:
             minx += s.dx
         plt.ylim([0, s.thick])
         plt.xlim([0, minx])
+        plt.title(self.get_title(prop))
         plt.show()
+
+    def get_title(self, prop):
+        """
+        Given the property, come up with a plot title
+        :param prop: the property we plot
+        :return: the title
+        """
+        print 'prop: ', prop
+        if prop == 'sg':
+            title = 'Gas Saturation'
+        elif prop == 'vp':
+            title = 'Compressional velocity'
+        elif prop == 'rho':
+            title = 'Density'
+        else:
+            title =''
+
+        return title

@@ -20,7 +20,6 @@ def first(nx=5, nz=5):
         liqlev = 5.0 + float(ix) * delliq
         rest = max(28.0 + 2.0 * dz_burden - liqlev, 0.0)
         delz = rest / float(nz-1)
-        print ix, liqlev, rest, delz
         l = [L.Layer(prm.debolt, prm.BIT, prm.BIT, sg=0.0, dz=dz_burden)]       # Underburden
         l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=0.0, dz=liqlev)) # liquid
         for iz in range(nz-1):
