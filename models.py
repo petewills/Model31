@@ -15,16 +15,15 @@ def first(nx=5, nz=5):
     delliq = 10.0 / float(nx)
     delx = 1000 / float(nx)
     dg = 0.9 / float(nz)
-    dz_burden = 5.0
     for ix in range(nx):
         liqlev = 5.0 + float(ix) * delliq
-        rest = max(28.0 + 2.0 * dz_burden - liqlev, 0.0)
+        rest = max(28.0 - liqlev, 0.0)
         delz = rest / float(nz-1)
-        l = [L.Layer(prm.debolt, prm.BIT, prm.BIT, sg=0.0, dz=dz_burden)]       # Underburden
+        l = [L.Layer(prm.debolt, prm.BIT, prm.BIT, sg=0.0, dz=prm.BURDEN)]       # Underburden
         l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=0.0, dz=liqlev)) # liquid
         for iz in range(nz-1):
             l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=float(iz + 1)*dg, dz=delz))
-        l.append(L.Layer(prm.wilrich, prm.BIT, prm.BIT, sg=0.0, dz=dz_burden))  # Overburden
+        l.append(L.Layer(prm.wilrich, prm.BIT, prm.BIT, sg=0.0, dz=prm.BURDEN))  # Overburden
 
         s = S.Stack(l[0], dx=delx)
         for lay in l[1:]:

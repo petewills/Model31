@@ -7,6 +7,7 @@ TVpath = HOME + 'TVPair.dat'
 DIGI = 0.1          # in ms
 LTRACE = 1000       # in ms
 TT0 = 180.0 / DIGI  # the sample of the top layer
+BURDEN = 50.0
 
 
 # Basic rock and fluid units

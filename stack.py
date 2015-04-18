@@ -70,7 +70,7 @@ class Stack:
         digz = lower / float(ntr)
         ztr = np.arange(0.0, lower, digz)
         xtr, ztr = self.limittr(lower)
-        ax_tr.plot(xtr + xmin + self.dx/2, ztr)
+        ax_tr.plot(xtr + xmin + self.dx/2, ztr, 'k')
 
     def limittr(self, zmax):
         """
@@ -78,16 +78,25 @@ class Stack:
         : param zmax: upper limit of Z in the plot
         :return:
         """
+
+        # for T/D, we need over and underburden as first and last reflections hung there
+        over = self.stack[0].unit['vp']
+        under = self.stack[-1].unit['vp']
         ntr = len(self.trace)
-        s0 = int(prm.TT0)
-        s1 = int(self.ttbase)
-        print s0, s1, ntr
+        s0 = int(prm.TT0) - 2.0 * prm.BURDEN / over * 1000.0 / prm.DIGI
+        s1 = int(self.ttbase)  + 2.0 * prm.BURDEN / under * 1000.0 / prm.DIGI
 
         xtr = self.trace[s0:s1]
         ntr = len(xtr)
-        digz = zmax / float(ntr)
-        ztr = np.arange(0.0, zmax, digz)
+        ztot = zmax
+        digz = ztot / float(ntr)
+        ztr = np.arange(0.0, ztot, digz)
         xtr = L.autogain(xtr, self.dx/2.0)
+
+        if len(ztr) > len(xtr):
+            ztr = ztr[:len(xtr)]
+        elif len(ztr) < len(xtr):
+            xtr = xtr[:len(ztr)]
 
         return xtr, ztr
 
@@ -105,7 +114,6 @@ class Stack:
         for (i, unit) in enumerate(self.stack):
             if i > 0:
                 dt, a = L.get_refl(self.stack[i-1].unit, self.stack[i].unit)
-                print 'a dt is: ', a, dt, tt
                 series = L.add_refl(series, a/DIGI, tt)
                 if i < len(self.stack) - 1:  # First and last layers have no reservoir
                     tt = tt + int(dt/DIGI)
@@ -131,7 +139,6 @@ class Stack:
         #     layer.display()
         #     arg.append(unit[0])
 
-        print 'set trace'
         self.trace, self.ttbase = self.compose_series(N, prm.TT0, DIGI)
         self.trace = L.bp(self.trace, spectrum, DIGI, phase=0)
 
