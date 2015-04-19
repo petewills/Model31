@@ -12,8 +12,8 @@ import parameters as prm
 import models as mod
 
 #  Create a baseline and monitor
-vbase = mod.first( nx=6, nz=10, liqlev=0.0, delliq=0.0, dgtot=[0.2, 0.2])
-vmon = mod.first( nx=6, nz=10, liqlev=0.0, delliq=0.0, dgtot=[0.0, 0.0])
+vbase = mod.first( nx=6, nz=6, liqlev=5.0, delliq=0.0, dgtot=[0.2, 0.2])
+vmon = mod.first( nx=6, nz=6, liqlev=5.0, delliq=3.0, dgtot=[0.2, 0.2])
 
 # QC the baseline and monitor
 # vbase.qc(prop='vp')

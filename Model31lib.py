@@ -58,16 +58,16 @@ def get_rms( series, t, gate):
     return rms
 
 
-def compose_series(N, strat, tt, DIGI):
-    """Given the strat, compose a seismic trace"""
-    series = np.zeros(N)
-    for (i, unit) in enumerate(strat):
-        if i > 0:
-            dt, a = get_refl(strat[i-1], strat[i])
-            series = add_refl(series, a/DIGI, tt)
-            if i < len(strat) - 1:  # First and last layers have no reservoir
-                tt = tt + int(dt/DIGI)
-    return series, tt
+# def compose_series(N, strat, tt, DIGI):
+#     """Given the strat, compose a seismic trace"""
+#     series = np.zeros(N)
+#     for (i, unit) in enumerate(strat):
+#         if i > 0:
+#             dt, a = get_refl(strat[i-1], strat[i])
+#             series = add_refl(series, a/DIGI, int(tt))
+#             if i < len(strat) - 1:  # First and last layers have no reservoir
+#                 tt = tt + dt/DIGI
+#     return series, tt
 
 
 def add_refl(series, a, t):
@@ -155,50 +155,6 @@ def bp(ser, spect, DIGI, phase=0):
     newser = scipy.real(np.fft.ifft(fser))
 
     return newser
-
-
-def reservoir(units, DIGI):
-    """Build one vintage of reservoir"""
-
-    gate = 20.0
-    N = int(1000 / DIGI)
-    spectrum = [20, 40, 110, 140]
-    for i in range(4):
-        spectrum[i] = int(spectrum[i])
-
-    tt0 = 180.0 / DIGI   # Basic "zero" for the time section
-    arg = []
-    for unit in units:
-        unit[0]['dz'] = unit[1]
-        arg.append(unit[0])
-
-    trace, tt = compose_series(N, arg, tt0, DIGI)
-    trace = bp(trace, spectrum, DIGI, phase=0)
-
-    rmstop = get_rms(trace, tt0, gate)
-    rmsbase = get_rms(trace, tt, gate)
-
-    # Gates fot plotting
-    g1 = int((tt-gate/2.0/DIGI))
-    g2 = int((tt+gate/2.0/DIGI))
-    basegate = [[g1, g1], [g2, g2]]
-    g1 = int((tt0-gate/2.0/DIGI))
-    g2 = int((tt0+gate/2.0/DIGI))
-    topgate = [[g1, g1], [g2, g2]]
-
-    # Model for plotting
-    thick = []
-    col = []
-    totthick = 0.0
-    for unit in units:
-        thick.append(float(unit[1]))
-        col.append(unit[0]['color'])
-        totthick += float(unit[1])
-
-    res = {'trace': trace, 'tt': tt, 'rmstop': rmstop, 'rmsbase': rmsbase, 'basegate': basegate, 'topgate': topgate,
-           'thick': thick, 'totthick': totthick, 'color': col}
-    return res
-
 
 def testgas(GAS, fluid, rock):
     """

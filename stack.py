@@ -98,10 +98,12 @@ class Stack:
         series = np.zeros(N)
         for (i, unit) in enumerate(self.stack):
             if i > 0:
+                print unit.unit
                 dt, a = L.get_refl(self.stack[i-1].unit, self.stack[i].unit)
-                series = L.add_refl(series, a/DIGI, tt)
+                print 'compose dt:', dt, tt
+                series = L.add_refl(series, a/DIGI, int(tt))
                 if i < len(self.stack) - 1:  # First and last layers have no reservoir
-                    tt += int(dt/DIGI)
+                    tt += dt/DIGI
 
         return series, tt
 
@@ -127,6 +129,7 @@ class Stack:
 
         self.ttbase *= DIGI     # put the time in ms, physical units
         self.TT0 = prm.TT0 * prm.DIGI
+        print 'attr: ', self.TT0, self.ttbase
 
         # Model for plotting
         thick = []

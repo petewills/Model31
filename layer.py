@@ -10,7 +10,8 @@ class Layer:
         mixgas = M.fmix('mixgas', [gas, fluid], [sg, 1.0-sg])
         self.sg = sg
         if self.baseunit['phi'] > 0.1:
-            self.unit = M.gassman('blGAS', unit, fluid, mixgas)
+            label = 'blGAS_' + str(sg)
+            self.unit = M.gassman(label, unit, fluid, mixgas)
         else:
             self.unit = unit
         self.unit['dz'] = dz
