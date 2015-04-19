@@ -20,7 +20,7 @@ class Layer:
         if prop == 'sg':
             return((self.sg, 0, 1 - self.sg))
         elif prop == 'vp':
-            lim = [2500, 2800]
+            lim = [2500, 3400]
             v = self.unit[prop]
             norm = ((v - lim[0]) / (lim[1] - lim[0]))
             norm = max(0.0, norm); norm = min(1.0, norm)

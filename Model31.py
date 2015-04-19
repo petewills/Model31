@@ -11,25 +11,18 @@ import vintage as V
 import parameters as prm
 import models as mod
 
-v = mod.first( nx=6, nz=10)
-v.qc(prop='vp')
+#  Create a baseline and monitor
+vbase = mod.first( nx=6, nz=10, liqlev=0.0, delliq=0.0, dgtot=[0.2, 0.2])
+vmon = mod.first( nx=6, nz=10, liqlev=0.0, delliq=0.0, dgtot=[0.0, 0.0])
+
+# QC the baseline and monitor
+# vbase.qc(prop='vp')
+# vmon.qc(prop='vp')
+
+# Show some 4D diagnostics
+vmon.qc4d(vbase)
 sys.exit()
 
-
-#
-# N = 10
-# dg = 0.9 / float(N)
-# delz = 23.0 / float(N)
-# l = [L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=0.0, dz=5.0)]
-# for i in range(N-1):
-#     l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=float(i+1)*dg, dz=delz))
-#
-# s = S.Stack(l[0], dx=20.0)
-# for lay in l[1:]:
-#     s.append(lay)
-# s.display()
-# s.qc()
-# sys.exit()
 
 
 # Irreducible bitumen in sandstone and mix the fluids necessary

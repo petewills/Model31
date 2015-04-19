@@ -2,6 +2,7 @@ __author__ = 'peterwills'
 import Model31lib as M
 import pylab as plt
 import matplotlib as mp
+import sys as sys
 
 class Vintage:
 
@@ -27,26 +28,75 @@ class Vintage:
         self.vintage.append(stack)
         self.N += 1
 
-    def qc(self, prop='sg'):
+    def qc4d(self, base):
+        """
+        plot diagnostics for 4D, given the baseline
+        :param base: baseline vintage class instance
+        :return:
+        """
+
+        base.qc(prop='vp', show='NO', wigcol='b', figno=1)
+        base.qc(prop='vp', show='NO', wigcol='b', figno=2)
+        self.qc(prop='vp', show='NO', wigcol='r',figno=2)
+
+
+
+        sb = base.vintage
+        sm = self.vintage
+
+        if len(sb) != len(sm):
+            print 'Error in 4D qc: different number of spatial points'
+            sys.exit()
+
+        ts, ndrmstop, ndrmsbase = [], [], []
+        # timeshift
+        for (i, s) in enumerate(sm):
+            ts.append(sb[i].ttbase - s.ttbase)          # timeshift at base reservoir
+            ndrmstop.append( 2.0 * (sb[i].rmstop - s.rmstop) / (sb[i].rmstop + s.rmstop))       # ndrms at top reservoir
+            ndrmsbase.append( 2.0 * (sb[i].rmsbase - s.rmsbase) / (sb[i].rmsbase + s.rmsbase) ) # ndrms at top reservoir
+
+        plt.figure(3)
+        ax_att = plt.subplot(1,1,1)
+        plt.figure(2)
+        ax_att_t = ax_att.twinx()
+
+        x = range(len(ndrmstop))
+        ax_att.plot(x, ndrmstop, 'ko-', label='NDRMS Top Reservoir')
+        ax_att.plot(x, ndrmsbase, 'ro-', label='NDRMS Base Reservoir')
+        ax_att_t.plot(x, ts, 'go-', label='Time in Reservoir')
+        ax_att_t.plot(0, 0, 'g-', label='Time in Reservoir')
+        ax_att.grid()
+        plt.title('Attributes')
+        ax_att.legend(loc='upper left')
+        plt.show()
+
+        print ts
+        print ndrmstop
+        print ndrmsbase
+
+        sys.exit()
+
+    def qc(self, prop='sg', show='NO', wigcol='r', figno=1):
         """
         plot the vintage
         :return:
         """
-        fig = plt.figure(1)
+        plt.figure(figno)
         ax_tr = plt.subplot(1, 2, 2)
         ax_prop = plt.subplot(1, 2, 1, sharex=ax_tr, sharey=ax_tr)
 
         minx = 0.0
         for s in self.vintage:
-            s.qc_bare(ax_prop, ax_tr, minx, prop)
+            s.qc_bare(ax_prop, ax_tr, minx, prop, wigcol)
             minx += s.dx
         ax_prop.set_ylim([0, s.thick])
         ax_prop.set_xlim([0, minx])
         ax_prop.set_title(self.get_title(prop))
         ax_tr.set_ylim([0, s.thick])
         ax_tr.set_xlim([0, minx])
-        ax_tr.set_title('Seismic traces')
-        plt.show()
+        ax_tr.set_title('Seismic traces: (red=mon)  (blue=base)')
+        if show=='YES':
+            plt.show()
 
     def get_title(self, prop):
         """
@@ -62,6 +112,6 @@ class Vintage:
         elif prop == 'rho':
             title = 'Density'
         else:
-            title =''
+            title = ''
 
         return title

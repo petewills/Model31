@@ -36,25 +36,13 @@ class Stack:
         for unit in self.stack:
             print "unit:", unit
 
-    def qc(self, prop='sg'):
-        """
-        standalone plot of the stack
-        :return:
-        """
-        fig = plt.figure(1)
-        ax_prop = plt.subplot(1, 2, 1)
-        ax_tr = plt.subplot(1, 2, 2)
-        self.qc_bare(ax_prop, ax_tr, 0.0, prop)
-        plt.ylim([0, self.thick])
-        plt.xlim([0, self.dx])
-        plt.show()
-
-    def qc_bare(self, ax_prop, ax_tr, xmin, prop):
+    def qc_bare(self, ax_prop, ax_tr, xmin, prop, wigcol):
         """
         Plot the stack
         :param ax_prop, ax_tr: the plot axes
         :param xmin: start distance along traverse
         :param prop: What property do we plot?
+        :param wigcol: color of wiggle plot
         :return:
         """
         # print 'Stack at location: ', xmin + self.dx / 2
@@ -68,9 +56,8 @@ class Stack:
         xtr = self.trace[:ntr/2]
         ntr = len(xtr)
         digz = lower / float(ntr)
-        ztr = np.arange(0.0, lower, digz)
         xtr, ztr = self.limittr(lower)
-        ax_tr.plot(xtr + xmin + self.dx/2, ztr, 'k')
+        ax_tr.plot(xtr + xmin + self.dx/2, ztr, wigcol)
 
     def limittr(self, zmax):
         """
@@ -83,9 +70,8 @@ class Stack:
         over = self.stack[0].unit['vp']
         under = self.stack[-1].unit['vp']
         ntr = len(self.trace)
-        s0 = int(prm.TT0) - 2.0 * prm.BURDEN / over * 1000.0 / prm.DIGI
-        s1 = int(self.ttbase)  + 2.0 * prm.BURDEN / under * 1000.0 / prm.DIGI
-
+        s0 = (int(self.TT0) - 2.0 * prm.BURDEN / over * 1000.0) / prm.DIGI
+        s1 = (int(self.ttbase) + 2.0 * prm.BURDEN / under * 1000.0) / prm.DIGI
         xtr = self.trace[s0:s1]
         ntr = len(xtr)
         ztot = zmax
@@ -99,7 +85,6 @@ class Stack:
             xtr = xtr[:len(ztr)]
 
         return xtr, ztr
-
 
     def compose_series(self, N, tt, DIGI):
         """
@@ -116,7 +101,7 @@ class Stack:
                 dt, a = L.get_refl(self.stack[i-1].unit, self.stack[i].unit)
                 series = L.add_refl(series, a/DIGI, tt)
                 if i < len(self.stack) - 1:  # First and last layers have no reservoir
-                    tt = tt + int(dt/DIGI)
+                    tt += int(dt/DIGI)
 
         return series, tt
 
@@ -124,7 +109,7 @@ class Stack:
         """
         Build the trace and attributes for a stack
         :param DIGI: digitization of seismic
-        : param LTRACE: length of seismic trace in ms
+        :param LTRACE: length of seismic trace in ms
         :return:
         """
 
@@ -134,24 +119,15 @@ class Stack:
         for i in range(4):
             spectrum[i] = int(spectrum[i])
 
-        # arg = []
-        # for layer in self.stack:
-        #     layer.display()
-        #     arg.append(unit[0])
-
         self.trace, self.ttbase = self.compose_series(N, prm.TT0, DIGI)
         self.trace = L.bp(self.trace, spectrum, DIGI, phase=0)
 
-        rmstop = L.get_rms(self.trace, prm.TT0, gate)
-        rmsbase = L.get_rms(self.trace, self.ttbase, gate)
+        self.rmstop = L.get_rms(self.trace, prm.TT0, gate)
+        self.rmsbase = L.get_rms(self.trace, self.ttbase, gate)
 
-        # Gates fot plotting
-        g1 = int((self.ttbase-gate/2.0/DIGI))
-        g2 = int((self.ttbase+gate/2.0/DIGI))
-        basegate = [[g1, g1], [g2, g2]]
-        g1 = int((prm.TT0-gate/2.0/DIGI))
-        g2 = int((prm.TT0+gate/2.0/DIGI))
-        topgate = [[g1, g1], [g2, g2]]
+        self.ttbase *= DIGI     # put the time in ms, physical units
+        self.TT0 = prm.TT0 * prm.DIGI
+
 
         # Model for plotting
         thick = []
@@ -161,8 +137,4 @@ class Stack:
             thick.append(l.unit['dz'])
             col.append(l.unit['color'])
             totthick += float(l.unit['dz'])
-
-        res = {'trace': self.trace, 'tt': self.ttbase, 'rmstop': rmstop, 'rmsbase': rmsbase, 'basegate': basegate, 'topgate': topgate,
-           'thick': thick, 'totthick': totthick, 'color': col}
-
 

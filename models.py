@@ -6,23 +6,26 @@ import parameters as prm
 
 """ Models that have been constructed"""
 
-def first(nx=5, nz=5):
+def first(nx=5, nz=5, liqlev=5.0, delliq=0.0, dgtot=[0.0, 0.0]):
     """
-    First model tried, mainly for debugging
+    This model has gas saturation gradient rising above a liquid layer
     :param nx, nz The model dimensions
+    :param liqlev: liquid level in the baseline
+    :param delliq: governs how much the liquid level changes with x
+    :param dgtot: gas change limits at bottom.top of gas column
     :return:
     """
-    delliq = 10.0 / float(nx)
+    # delliq = 10.0 / float(nx)
     delx = 1000 / float(nx)
-    dg = 0.9 / float(nz)
+    dg = (dgtot[1] - dgtot[0]) / float(nz)
     for ix in range(nx):
-        liqlev = 5.0 + float(ix) * delliq
-        rest = max(28.0 - liqlev, 0.0)
+        level = liqlev + float(ix) * delliq
+        rest = max(28.0 - level, 0.0)
         delz = rest / float(nz-1)
         l = [L.Layer(prm.debolt, prm.BIT, prm.BIT, sg=0.0, dz=prm.BURDEN)]       # Underburden
-        l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=0.0, dz=liqlev)) # liquid
+        l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=0.0, dz=level)) # liquid
         for iz in range(nz-1):
-            l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=float(iz + 1)*dg, dz=delz))
+            l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=dgtot[0] + float(iz)*dg, dz=delz))
         l.append(L.Layer(prm.wilrich, prm.BIT, prm.BIT, sg=0.0, dz=prm.BURDEN))  # Overburden
 
         s = S.Stack(l[0], dx=delx)
