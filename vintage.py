@@ -3,6 +3,8 @@ import Model31lib as M
 import pylab as plt
 import matplotlib as mp
 import sys as sys
+import parameters as prm
+import Model31lib as L
 
 class Vintage:
 
@@ -28,6 +30,33 @@ class Vintage:
         self.vintage.append(stack)
         self.N += 1
 
+    def get_gain(self):
+        """
+        Find the suggested gain to make this vintage plotable
+        We derive panel gan from full trace - should be ok as it is zero above/below
+        :return:
+        """
+        # v = self.vintage
+        # gain = 0.0
+        # for s in v:
+        #     lower = 0.0
+        #     for layer in s.stack:
+        #         lower += layer.unit['dz']
+        #     s.attributes(prm.DIGI, prm.LTRACE)
+        #     xtr, ztr, g = s.limittr(lower, 0.0)
+        #     gain += g / len(v)
+
+        v = self.vintage
+        gain = 0.0
+        for s in v:
+            s.attributes(prm.DIGI, prm.LTRACE)
+            xtr, g = L.autogain(s.trace, s.dx / 2.0)
+            gain += g / len(v)
+            print g, gain
+
+        return gain
+
+
     def qc4d(self, base):
         """
         plot diagnostics for 4D, given the baseline
@@ -35,11 +64,12 @@ class Vintage:
         :return:
         """
 
-        base.qc(prop='vp', show='NO', wigcol='b', figno=1)
-        base.qc(prop='vp', show='NO', wigcol='b', figno=2)
-        self.qc(prop='vp', show='NO', wigcol='r',figno=2)
+        # Find the gain suggested for base and monitor
+        gain = (base.get_gain() + self.get_gain())/2.0
 
-
+        base.qc(prop='vp', show='NO', wigcol='b', figno=1, gain=gain)
+        base.qc(prop='vp', show='NO', wigcol='b', figno=2, gain=gain)
+        self.qc(prop='vp', show='NO', wigcol='r',figno=2, gain=gain)
 
         sb = base.vintage
         sm = self.vintage
@@ -67,18 +97,21 @@ class Vintage:
         ax_att_t.plot(0, 0, 'g-', label='Time in Reservoir')
         ax_att.grid()
         plt.title('Attributes')
+        ax_att.set_ylabel('NDRMS')
+        ax_att_t.set_ylabel('timeshift(ms)')
         ax_att.legend(loc='upper left')
         plt.show()
 
-        print ts
-        print ndrmstop
-        print ndrmsbase
-
         sys.exit()
 
-    def qc(self, prop='sg', show='NO', wigcol='r', figno=1):
+    def qc(self, prop='sg', show='NO', wigcol='r', figno=1, gain=0.0):
         """
         plot the vintage
+        : param prop: property to plot eg vp or sg
+        :param show: whether or not to do plot.show
+        :param wigcol: color for the wiggles
+        :param figno: figure number. repeating means an overlay, goot for comparing traces
+        :param gain: gain fro raw panel. zero means use autogain
         :return:
         """
         plt.figure(figno)
@@ -87,7 +120,7 @@ class Vintage:
 
         minx = 0.0
         for s in self.vintage:
-            s.qc_bare(ax_prop, ax_tr, minx, prop, wigcol)
+            s.qc_bare(ax_prop, ax_tr, minx, prop, wigcol, gain)
             minx += s.dx
         ax_prop.set_ylim([0, s.thick])
         ax_prop.set_xlim([0, minx])
@@ -104,7 +137,7 @@ class Vintage:
         :param prop: the property we plot
         :return: the title
         """
-        print 'prop: ', prop
+
         if prop == 'sg':
             title = 'Gas Saturation'
         elif prop == 'vp':

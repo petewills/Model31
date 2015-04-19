@@ -35,7 +35,9 @@ def autogain(trace, extragain):
     :return:
     """
 
-    return trace / np.max(np.absolute(trace)) * extragain
+    gain = 1.0 / np.max(np.absolute(trace))
+
+    return trace * gain * extragain, gain
 
 
 def get_rms( series, t, gate):
@@ -279,7 +281,6 @@ def createTVpair(TVpath, rock, gas, fluid, Sg=[0.0, 0.8], A=10000, t='', data=[]
         V.append(currz * phi * (Sg[1] - Sg[0]) * A)
         TT0 = TT(rock, Sg[0], gas, fluid)
         TT1 = TT(rock, Sg[1], gas, fluid)
-        print TT0, TT1, TT1-TT0
         T.append(currz * (TT1 - TT0))
         Z.append(currz)
         currz = currz + 1

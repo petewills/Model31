@@ -32,36 +32,34 @@ class Stack:
         self.N += 1
 
     def display(self):
-        print 'Stack at location: ', self.dx
         for unit in self.stack:
             print "unit:", unit
 
-    def qc_bare(self, ax_prop, ax_tr, xmin, prop, wigcol):
+    def qc_bare(self, ax_prop, ax_tr, xmin, prop, wigcol, ingain):
         """
         Plot the stack
         :param ax_prop, ax_tr: the plot axes
         :param xmin: start distance along traverse
         :param prop: What property do we plot?
         :param wigcol: color of wiggle plot
+        :param gain: gain for wiggle. 0.0 means autogain
         :return:
         """
-        # print 'Stack at location: ', xmin + self.dx / 2
         lower = 0.0
         for layer in self.stack:
             rect = mp.patches.Rectangle((xmin, lower), self.dx, layer.unit['dz'], color=layer.get_color(prop), ec='y')
             ax_prop.add_patch(rect)
             lower += layer.unit['dz']
         self.attributes(prm.DIGI, prm.LTRACE)
-        ntr = len(self.trace)
-        xtr = self.trace[:ntr/2]
-        ntr = len(xtr)
-        digz = lower / float(ntr)
-        xtr, ztr = self.limittr(lower)
+        xtr, ztr = self.limittr(lower, ingain)        # always use ingain
         ax_tr.plot(xtr + xmin + self.dx/2, ztr, wigcol)
 
-    def limittr(self, zmax):
+    def limittr(self, zmax, ingain):
         """
         Limit the trace samples to the same range as the z of plots
+        Gain is derived in 2 ways:
+            - just use the input gain unless it is zero
+            - if it is zero, derive from max in the trace
         : param zmax: upper limit of Z in the plot
         :return:
         """
@@ -77,7 +75,9 @@ class Stack:
         ztot = zmax
         digz = ztot / float(ntr)
         ztr = np.arange(0.0, ztot, digz)
-        xtr = L.autogain(xtr, self.dx/2.0)
+
+        # just use input gain plus harmonize  with x along vintage
+        xtr = xtr * ingain * self.dx/2.0
 
         if len(ztr) > len(xtr):
             ztr = ztr[:len(xtr)]
@@ -127,7 +127,6 @@ class Stack:
 
         self.ttbase *= DIGI     # put the time in ms, physical units
         self.TT0 = prm.TT0 * prm.DIGI
-
 
         # Model for plotting
         thick = []
