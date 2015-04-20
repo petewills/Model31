@@ -17,10 +17,11 @@ def first(nx=5, nz=5, liqlev=5.0, delliq=0.0, dgtot=[0.0, 0.0]):
     """
     # delliq = 10.0 / float(nx)
     delx = 1000 / float(nx)
+    dz_sand = 28.0
     dg = (dgtot[1] - dgtot[0]) / float(nz)
     for ix in range(nx):
         level = liqlev + float(ix) * delliq
-        rest = max(28.0 - level, 0.0)
+        rest = max(dz_sand - level, 0.0)
         delz = rest / float(nz-1)
         l = [L.Layer(prm.debolt, prm.BIT, prm.BIT, sg=0.0, dz=prm.BURDEN)]       # Underburden
         l.append(L.Layer(prm.blueskyBIT, prm.BIT, prm.GAS, sg=0.0, dz=level)) # liquid

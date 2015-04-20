@@ -51,8 +51,8 @@ class Stack:
             ax_prop.add_patch(rect)
             lower += layer.unit['dz']
         self.attributes(prm.DIGI, prm.LTRACE)
-        xtr, ztr = self.limittr(lower, ingain)        # always use ingain
-        ax_tr.plot(xtr + xmin + self.dx/2, ztr, wigcol)
+        xtr, ztr = self.limittr(lower, ingain)                # always use ingain
+        ax_tr.plot(xtr + xmin + self.dx/2, ztr[::-1], wigcol) # Reversed like the z axis plot
 
     def limittr(self, zmax, ingain):
         """
@@ -70,6 +70,7 @@ class Stack:
         ntr = len(self.trace)
         s0 = (int(self.TT0) - 2.0 * prm.BURDEN / over * 1000.0) / prm.DIGI
         s1 = (int(self.ttbase) + 2.0 * prm.BURDEN / under * 1000.0) / prm.DIGI
+
         xtr = self.trace[s0:s1]
         ntr = len(xtr)
         ztot = zmax
@@ -96,13 +97,12 @@ class Stack:
         """
 
         series = np.zeros(N)
-        for (i, unit) in enumerate(self.stack):
+        rs = self.stack[::-1]
+        for (i, unit) in enumerate(rs):
             if i > 0:
-                print unit.unit
-                dt, a = L.get_refl(self.stack[i-1].unit, self.stack[i].unit)
-                print 'compose dt:', dt, tt
+                dt, a = L.get_refl(rs[i-1].unit, rs[i].unit)
                 series = L.add_refl(series, a/DIGI, int(tt))
-                if i < len(self.stack) - 1:  # First and last layers have no reservoir
+                if i < len(rs) - 1:  # First and last layers have no reservoir
                     tt += dt/DIGI
 
         return series, tt
@@ -118,6 +118,7 @@ class Stack:
         gate = 20.0
         N = int(LTRACE / DIGI)                # 1000 ms trace length hardwired
         spectrum = [20, 40, 110, 140]
+        #  spectrum = [20, 40, 4910, 5540]
         for i in range(4):
             spectrum[i] = int(spectrum[i])
 
@@ -129,7 +130,6 @@ class Stack:
 
         self.ttbase *= DIGI     # put the time in ms, physical units
         self.TT0 = prm.TT0 * prm.DIGI
-        print 'attr: ', self.TT0, self.ttbase
 
         # Model for plotting
         thick = []

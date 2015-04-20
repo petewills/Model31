@@ -12,15 +12,20 @@ import parameters as prm
 import models as mod
 
 #  Create a baseline and monitor
-vbase = mod.first( nx=6, nz=6, liqlev=5.0, delliq=0.0, dgtot=[0.2, 0.2])
-vmon = mod.first( nx=6, nz=6, liqlev=5.0, delliq=3.0, dgtot=[0.2, 0.2])
+vbase = mod.first( nx=15, nz=14, liqlev=0.0, delliq=0.0, dgtot=[0.8, 0.8])
+vmon = mod.first( nx=15, nz=14, liqlev=0.0, delliq=2.0, dgtot=[0.8, 0.8])
+
+vbase1 = mod.first( nx=15, nz=14, liqlev=0.0, delliq=0.0, dgtot=[0.2, 0.2])
+vmon1 = mod.first( nx=15, nz=14, liqlev=0.0, delliq=2.0, dgtot=[0.2, 0.2])
 
 # QC the baseline and monitor
 # vbase.qc(prop='vp')
 # vmon.qc(prop='vp')
 
 # Show some 4D diagnostics
-vmon.qc4d(vbase)
+vmon.qc4d(vbase, show='YES')
+#vmon1.qc4d(vbase1, show='YES')
+
 sys.exit()
 
 

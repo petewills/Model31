@@ -46,7 +46,6 @@ class Vintage:
         #     xtr, ztr, g = s.limittr(lower, 0.0)
         #     gain += g / len(v)
 
-        print 'getting gains'
         v = self.vintage
         gain = 0.0
         for s in v:
@@ -57,7 +56,7 @@ class Vintage:
         return gain
 
 
-    def qc4d(self, base):
+    def qc4d(self, base, show='YES'):
         """
         plot diagnostics for 4D, given the baseline
         :param base: baseline vintage class instance
@@ -67,11 +66,8 @@ class Vintage:
         # Find the gain suggested for base and monitor
         gain = (base.get_gain() + self.get_gain())/2.0
 
-        print 'first base qc'
         base.qc(prop='vp', show='NO', wigcol='b', figno=1, gain=gain)
-        print 'second base qc'
         base.qc(prop='vp', show='NO', wigcol='b', figno=2, gain=gain)
-        print 'mon qc'
         self.qc(prop='vp', show='NO', wigcol='r',figno=2, gain=gain)
 
         sb = base.vintage
@@ -84,14 +80,15 @@ class Vintage:
         ts, ndrmstop, ndrmsbase = [], [], []
         # timeshift
         for (i, s) in enumerate(sm):
-            print 'vintage: ', sb[i].ttbase, s.ttbase, sb[i].ttbase - s.ttbase
-            ts.append(sb[i].ttbase - s.ttbase)          # timeshift at base reservoir
+            shift = (int((sb[i].ttbase - s.ttbase) * 10000.0)) / 10000.0 # some crazy shit unless I do this
+            ts.append(shift)          # timeshift at base reservoir
             ndrmstop.append( 2.0 * (sb[i].rmstop - s.rmstop) / (sb[i].rmstop + s.rmstop))       # ndrms at top reservoir
             ndrmsbase.append( 2.0 * (sb[i].rmsbase - s.rmsbase) / (sb[i].rmsbase + s.rmsbase) ) # ndrms at top reservoir
+            # print 'vint:', sb[i].rmstop, s.rmstop, sb[i].rmsbase, s.rmsbase
 
-        plt.figure(3)
+
+        plt.figure(73)
         ax_att = plt.subplot(1,1,1)
-        plt.figure(2)
         ax_att_t = ax_att.twinx()
 
         x = range(len(ndrmstop))
@@ -99,14 +96,14 @@ class Vintage:
         ax_att.plot(x, ndrmsbase, 'ro-', label='NDRMS Base Reservoir')
         ax_att_t.plot(x, ts, 'go-', label='Time in Reservoir')
         ax_att.plot(0, 0, 'g-', label='Time in Reservoir')
-        ax_att.grid()
+        ax_att_t.grid()
         plt.title('Attributes')
         ax_att.set_ylabel('NDRMS')
         ax_att_t.set_ylabel('timeshift(ms)')
         ax_att.legend(loc='upper left')
-        plt.show()
 
-        sys.exit()
+        if show == 'YES':
+            plt.show()
 
     def qc(self, prop='sg', show='NO', wigcol='r', figno=1, gain=0.0):
         """
