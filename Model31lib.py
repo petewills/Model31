@@ -69,6 +69,48 @@ def get_rms( series, t, gate):
 #                 tt = tt + dt/DIGI
 #     return series, tt
 
+def TDconvert( tseries, dt, stack):
+    """
+    Convert a time series to irregular depth given ann input velocty model
+    vmodel is list of [ztop, vlayer]
+    :param tseries: input time series
+    :param dt: input digi
+    :param stack: input model stack
+    :return: depths of each time sample
+    """
+
+    N = len(tseries)
+    z = np.zeros(N)
+
+    sr = stack[::-1]
+
+    # make a vmodel
+    vmodel = [[],[]]
+    rztot = 0.0
+    for l in sr:
+        vmodel[1].append(l.unit['vp'])
+        vmodel[0].append(rztot)
+        rztot += l.unit['dz']
+
+    # append to it so we never run out of model in TD conversion
+    vmodel[1].append(2000.0) # vp
+    vmodel[0].append(1000.0) # dz
+
+    rz = 0.0
+    rt = 0.0
+    l = 0
+    for i in range(N):
+        v = vmodel[1][l]
+        rz += dt * v / 2.0 / 1000.0
+        rt += dt
+        z[i] = rztot - rz
+        if rz > vmodel[0][l+1]:
+            l = l + 1
+
+    return z
+
+        
+
 
 def add_refl(series, a, t):
     """Add a reflection to the series"""
@@ -82,6 +124,9 @@ def get_refl(ru, rl):
     """amplitude and time increment"""
     a = (ru['vp']*ru['rho'] - rl['vp']*rl['rho']) / (ru['vp']*ru['rho'] + rl['vp']*rl['rho'])
     dt = 2.0 * rl['dz'] / rl['vp'] * 1000.0
+    # print 'upper:', ru
+    # print 'lower', rl
+    # print 'a:', a
 
     return dt, a
 

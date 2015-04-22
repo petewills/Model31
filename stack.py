@@ -46,13 +46,15 @@ class Stack:
         :return:
         """
         lower = 0.0
-        for layer in self.stack:
+        sr = self.stack
+        for layer in sr:
             rect = mp.patches.Rectangle((xmin, lower), self.dx, layer.unit['dz'], color=layer.get_color(prop), ec='y')
             ax_prop.add_patch(rect)
             lower += layer.unit['dz']
         self.attributes(prm.DIGI, prm.LTRACE)
         xtr, ztr = self.limittr(lower, ingain)                # always use ingain
-        ax_tr.plot(xtr + xmin + self.dx/2, ztr[::-1], wigcol) # Reversed like the z axis plot
+        ax_tr.plot(xtr + xmin + self.dx/2, ztr, wigcol) # Reversed like the z axis plot
+
 
     def limittr(self, zmax, ingain):
         """
@@ -65,8 +67,8 @@ class Stack:
         """
 
         # for T/D, we need over and underburden as first and last reflections hung there
-        over = self.stack[0].unit['vp']
-        under = self.stack[-1].unit['vp']
+        over = self.stack[-1].unit['vp']
+        under = self.stack[0].unit['vp']
         ntr = len(self.trace)
         s0 = (int(self.TT0) - 2.0 * prm.BURDEN / over * 1000.0) / prm.DIGI
         s1 = (int(self.ttbase) + 2.0 * prm.BURDEN / under * 1000.0) / prm.DIGI
@@ -75,14 +77,31 @@ class Stack:
         ntr = len(xtr)
         ztot = zmax
         digz = ztot / float(ntr)
-        ztr = np.arange(0.0, ztot, digz)
+
+        ztr = L.TDconvert( xtr, prm.DIGI, self.stack)
+        """
+        plt.figure(73)
+        plt.plot(ztr, 'ro-')
+        plt.figure(74)
+        plt.plot(xtr, 'ro-')
+        plt.figure(75)
+        plt.plot(ztr, xtr, 'ro-')
+        plt.figure(76)
+        plt.plot(ztr, xtr, 'ro-')
+        plt.show()
+        sys.exit()
+        """
+
+
 
         # just use input gain plus harmonize  with x along vintage
         xtr = xtr * ingain * self.dx/2.0
 
         if len(ztr) > len(xtr):
+            print 'length bust >:', len(ztr), len(xtr)
             ztr = ztr[:len(xtr)]
         elif len(ztr) < len(xtr):
+            print 'length bust <:', len(ztr), len(xtr)
             xtr = xtr[:len(ztr)]
 
         return xtr, ztr
@@ -104,7 +123,6 @@ class Stack:
                 series = L.add_refl(series, a/DIGI, int(tt))
                 if i < len(rs) - 1:  # First and last layers have no reservoir
                     tt += dt/DIGI
-
         return series, tt
 
     def attributes(self, DIGI, LTRACE):
@@ -117,8 +135,8 @@ class Stack:
 
         gate = 20.0
         N = int(LTRACE / DIGI)                # 1000 ms trace length hardwired
-        spectrum = [20, 40, 110, 140]
-        #  spectrum = [20, 40, 4910, 5540]
+        # spectrum = [20, 40, 110, 140]
+        spectrum = [20, 40, 2210, 2540]
         for i in range(4):
             spectrum[i] = int(spectrum[i])
 

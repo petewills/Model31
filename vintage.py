@@ -125,6 +125,7 @@ class Vintage:
             minx += s.dx
         ax_prop.set_ylim([0, s.thick])
         ax_prop.set_xlim([0, minx])
+        plt.gca().invert_yaxis      # z needs to be increasing downwards
         ax_prop.set_title(self.get_title(prop))
         ax_tr.set_ylim([0, s.thick])
         ax_tr.set_xlim([0, minx])
