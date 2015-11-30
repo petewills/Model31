@@ -10,45 +10,56 @@ Used to simulate pressure in 31-08
 Creates an ascii version of an int file
 """
 
+# lib.testei(fig=30)
+
 ofile = open("pressure.dat", "w")
 
-# s = phi * mu * c * r^2 / (4 * k * t)
+# s = phi * mu * cr * r^2 / (4 * k * t)
 # P = q * mu / (4*pi*k*h) Ei*-s)
+# The classic drawdown shape comes from the Ei at negative argument. My Ei function is really Ei(-x)
+
 mb = prm.k / prm.mu
-exfac = 500.0
-D = prm.phi * prm.c / (4.0 * mb) * exfac
+exfac = 1.0
+D = prm.phi * prm.cr / (4.0 * mb) * exfac
 
 Pup_days = 74                   # Days of pressure-up
-daystep = 1
+daystep = 5
 
 xwell = 511258
 ywell = 6246989
 tlim = [1, 74]         # in days
-nt = tlim[1] - tlim[0]
+nt = int((tlim[1] - tlim[0]) / float(daystep))
 
 rmax = 250.0            # generate data out to this radius
 dx = 5.0
 nxmap = int(2.0 * rmax / dx) + 1
 
+print 'D: ', D, D/24/3600
+
 Pdown = np.zeros([nt+1, nxmap, nxmap])
 Pup = np.zeros([nt+1, nxmap, nxmap])
 Pafter = np.zeros([nt+1, nxmap, nxmap])
-for t in range(tlim[0], tlim[1]):
+S = np.zeros([nt+1, nxmap, nxmap])
+for t in range(nt):
     dt = ((t-1) * daystep + 0.001) * 3600 * 24
     for i in range(nxmap):
         x = (xwell - rmax) + float(i) * dx
         for j in range(nxmap):
             y = (ywell - rmax) + float(j) * dx
             r = np.sqrt((x-xwell)**2 + (y-ywell)**2)
+
             s = D * r**2 / dt
-            Pdown[t, i, j] = prm.pi + prm.p0 * lib.ei(s) / 1000 / 1000        # In MPa
+            Pdown[t, i, j] = prm.p0 * lib.ei(s) / 1000 / 1000        # In MPa
 
             dt_up = Pup_days * 3600 * 24
             s = D * r**2 / dt_up
             Pup[t, i, j] = prm.pi + prm.p0 * lib.ei(s) / 1000 / 1000#  - Pdown[t, i, j]       # In MPa
 
             s = D * r**2 / dt
-            Pafter[t, i, j] = prm.pi + Pup[t, i, j] - Pdown[t, i, j]       # In MPa
+            Pafter[t, i, j] = Pup[t, i, j] - Pdown[t, i, j]       # In MPa
+
+            s = D * r**2 / dt
+            S[t, i, j] = s                                                  # Arg to Ei
 
 
 
@@ -57,6 +68,7 @@ nx = int(np.sqrt(nt))
 t = tlim[0]
 ind = tlim[0]
 ip = 1
+"""
 for i in range(nx):
     for j in range(nx):
         if ip>1:
@@ -122,9 +134,9 @@ for i in range(nx):
         ip += 1
 plt.suptitle('Pressure down - subtracted Max Pressure Date')
 plt.show()
+"""
 
-
-# Plot a cut across the center
+# Plot radial dependence
 plt.figure(4)
 nx = int(np.sqrt(nt))
 t = tlim[0]
@@ -132,21 +144,38 @@ ind = tlim[0]
 ip = 1
 for i in range(nx):
     for j in range(nx):
+        r= []
+        yv, yvU, yvD, Sv = [], [], [], []
+        for k in range(nxmap):
+            for l in range(nxmap):
+                x = float(k-nxmap/2) * dx
+                y = float(l-nxmap/2) * dx
+                r.append(np.sqrt(x**2 + y**2))
+                yv.append(Pafter[ind, k, l])
+                yvD.append(Pdown[ind, k, l])
+                yvU.append(Pup[ind, k, l])
+                Sv.append(S[ind, k, l])
         if ip>1:
-            plt.subplot(nx, nx, ip, sharex=ax1, sharey=ax1)
+            axn=plt.subplot(nx, nx, ip, sharex=ax1, sharey=ax1)
         else:
             ax1 = plt.subplot(nx, nx, ip)
-        plt.plot(Pdown[ind, :, nxmap/2], 'r-', label='Pdown')
-        plt.plot(Pup[ind, :, nxmap/2], 'k-', label='Pup')
-        plt.plot(Pafter[ind, :, nxmap/2], 'b-', label='P Post Shutin')
+        # plt.plot(Pdown[ind, :, nxmap/2], 'r-', label='Pdown')
+        # plt.plot(Pup[ind, :, nxmap/2], 'k-', label='Pup')
+        plt.scatter(r, yv, c='b', edgecolors='none', label='P Post Shutin')# , 'bo', markersize=2)
+        plt.scatter(r, yvD, c='r', edgecolors='none', label='P Down')# ), 'ko', markersize=2)
+        plt.scatter(r, yvU, c='k', edgecolors='none', label='P Up') # , 'ro', , markersize=2)
+        if (i==nx-1) and (j==nx-1):
+            plt.legend()
+        if ip>1:
+            axn2 = axn.twinx()
+            plt.scatter(r, Sv, c='g', edgecolors='none', label='Ei Arg') # , 'ro', , markersize=2)
         fr = plt.gca()
         fr.text(0.5, 0.85, 'Day '+str(t), transform=fr.transAxes, fontsize=12, horizontalalignment='center')
-        # plt.legend()
         plt.grid()
         t += daystep
         ind += 1
         ip += 1
-plt.suptitle('Cut through well')
+plt.suptitle('Radial dependence')
 plt.show()
 
 
