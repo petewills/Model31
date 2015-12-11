@@ -4,8 +4,8 @@ __author__ = 'peterwills'
 q = 500.0 / (3600.0 * 24.0)                                       # flow rate m3/sec
 mu = 1.0 * 9.0 / 10000.0                                          # viscosity of water in Pa-s at 20C (assume cool water)
 mu = mu * 1.4                                                      # to explain data
-k = 0.1 * 9.869 / 1000.0 / 1000.0 / 1000.0 / 1000.0 / 10.0       # permeability in m2. equal to 1 D. first factor is the fudge
-k = k * 1.0                                                     # to explain data
+k = 9.869 / 1000.0 / 1000.0 / 1000.0 / 1000.0 / 10.0       # permeability in m2. equal to 1 D. first factor is the fudge
+k = k * 0.1                                                   # to explain data
 mu_4k = mu / (4.0*k)
 
 print 'mu_k: ', mu_4k/1000000
