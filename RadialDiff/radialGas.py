@@ -12,7 +12,7 @@ The boundary condition will be a tank of gas.
 
 1/r d/dr (r dP / dr ) = phi mu c / k dP / dt = m dP / dt
 """
-m = prm.phi * prm.mu * prm.c / prm.k
+
 gsat = 0.2              # Gas saturation
 tankrad = 190.0         # radius of stimulated reservoir
 tankvol = (tankrad**2) * math.pi * prm.h * prm.phi * gsat     # Initial volume of gas
@@ -35,12 +35,14 @@ for i in range(nstep):
         lr.append(liqrad)
         gp.append(gaspress)
 
-plt.figure(1)
-plt.plot(x, lr, 'ro')
-plt.ylabel('Liquid Radius(m)')
-plt.figure(2)
-plt.plot(x, gp, 'ro')
-plt.ylabel('Gas Pressure(MPa)')
-plt.show()
+P = lib.linesolve()
+
+# plt.figure(21)
+# plt.plot(x, lr, 'ro')
+# plt.ylabel('Liquid Radius(m)')
+# plt.figure(22)
+# plt.plot(x, gp, 'ro')
+# plt.ylabel('Gas Pressure(MPa)')
+# plt.show()
 
 

@@ -1,3 +1,5 @@
+from RadialDiff import library as lib
+
 __author__ = 'peterwills'
 """
 Compute hall plots and other things from a transient well solution.
@@ -9,7 +11,6 @@ import pylab as plt
 from scipy.ndimage import filters
 from scipy.signal import gaussian
 import sys as sys
-import library as lib
 import parm as prm
 
 

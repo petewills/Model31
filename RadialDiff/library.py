@@ -3,6 +3,107 @@ __author__ = 'peterwills'
 from scipy.special import expn as expn
 import pylab as plt
 import numpy as np
+import fdparm as fdprm
+import parm as prm
+from scipy.integrate import ode as ode
+from scipy.integrate import odeint as odeint
+import sys as sys
+import math as math
+
+def linesolve():
+    """
+    Solve the radial diffusivity equation using the method of lines
+    :return: Pressure grid in time and space
+    """
+
+
+    def rhs(y, t):
+        """
+        Defines a rhs, where lhs is simply the time derivative
+        1/r { P' + r P""}
+        Note that the arrays are padded by one element at either end
+        :param y: a single time step of the radial pressure vector
+        """
+        #
+        if t > fdprm.tprev:
+            print 'rhs t', t
+            fdprm.tprev = t
+
+
+        nr = len(y)             # includes the extra fake boundary points
+        y0 = y[1:nr-1]
+        ym = y[0:nr-2]
+        yp = y[2:nr]
+
+        pp = (y0 - ym)/fdprm.dr[1:nr-1]
+        ppp = (yp - 2.0*y0 + ym)/fdprm.dr[1:nr-1]**2
+
+        pp1, ppp1 = np.zeros(nr), np.zeros(nr)
+        for i in range(1, nr-1):
+            pp1[i] = (y[i] - y[i-1])/fdprm.dr[i]
+            ppp1[i] = (y[i-1] - 2.0 * y[i] + y[i+1]) / fdprm.dr[i]**2
+
+
+        deriv = np.zeros(nr)
+        deriv[1:nr-1] = (pp + fdprm.r[1:nr-1] * ppp) * prm.nu
+        deriv /= fdprm.r
+        deriv[nr-1] = 0.0        # Dirichlet at boundary. There is no change to initial value
+        deriv[0] = deriv[1]      # Neuman at zero. [0] and [1] move lockstep having been set in y0
+
+        predict = y[:4] + h0*deriv[:4]
+
+        # print 'deriv: ', deriv[:4]/1000/1000
+        # print 'r: ', fdprm.r[:4], fdprm.dr[:4]
+        # print 'y: ', y[0:4]/1000/1000
+        # print 'predict y: ', predict / 1000/1000
+        # print 'ppp, pp: ', ppp[:4]/1000/1000, pp[:4]/1000/1000
+        # print 'ppp1, pp1: ', ppp1[1:5]/1000/1000, pp1[1:5]/1000/1000
+        # print
+
+        # plt.subplot(122)
+        # plt.plot(fdprm.r[0:10], deriv[0:10])
+        plt.figure(11)
+        # plt.subplot(121)
+        plt.plot(fdprm.r[1:10], y[1:10], 'o')
+
+
+        return deriv
+
+
+    y0 = np.ones(len(fdprm.r)) * prm.pi
+    y0[0] = y0[1] + prm.Qnorm / fdprm.r[0] * fdprm.dr[0]    # Boundary cond set at beginning. derives will preserve it.
+    # print 'y0: ', y0[0:4]/1000000
+    # i = ode(rhs)
+    # i.set_integrator('vode', method='bde')
+    # i.set_initial_value(r, y0)
+
+    # Loop over times
+    h0 = 0.001
+    y, output = odeint(rhs, y0, fdprm.tvals, h0=h0, hmax=2000.0, mxstep=2000, full_output=True)
+    #plt.plot(y)
+
+    plt.figure(12)
+    plt.title('PDE time evolution')
+    plt.xlabel('Space')
+    plt.ylabel('Function value')
+    plt.imshow(y, aspect='auto')
+    plt.grid()
+    plt.colorbar()
+
+    plt.figure(13)
+    plt.title('PDE time evolution')
+    plt.xlabel('Space')
+    plt.ylabel('Function value')
+    print np.shape(y)
+    for (i, t) in enumerate(fdprm.tvals):
+        plt.plot(fdprm.r, y[i])
+    plt.grid()
+    #print y
+    plt.show()
+
+    print output['hu']
+
+
 
 
 def ei(x):
