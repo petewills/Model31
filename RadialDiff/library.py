@@ -16,21 +16,24 @@ def linesolve():
     :return: Pressure grid in time and space
     """
 
-
     def rhs(y, t):
         """
         Defines a rhs, where lhs is simply the time derivative
         1/r { P' + r P""}
         Note that the arrays are padded by one element at either end
         :param y: a single time step of the radial pressure vector
+        :param t: Current time in simulation
         """
-        #
+        rp = fdprm.rp
+        rpp = fdprm.rpp
+        rreg = fdprm.rreg
+
+        # Use this to limit rhs messages
         if t > fdprm.tprev:
-            print 'rhs t', t
+            print 'rhs t', t / 3600, ' hours'
             fdprm.tprev = t
 
-
-        nr = len(y)             # includes the extra fake boundary points
+        nr = len(y)             # All points are physically in the model
         y0 = y[1:nr-1]
         ym = y[0:nr-2]
         yp = y[2:nr]
@@ -38,73 +41,67 @@ def linesolve():
         pp = (y0 - ym)/fdprm.dr[1:nr-1]
         ppp = (yp - 2.0*y0 + ym)/fdprm.dr[1:nr-1]**2
 
-        pp1, ppp1 = np.zeros(nr), np.zeros(nr)
-        for i in range(1, nr-1):
-            pp1[i] = (y[i] - y[i-1])/fdprm.dr[i]
-            ppp1[i] = (y[i-1] - 2.0 * y[i] + y[i+1]) / fdprm.dr[i]**2
-
-
         deriv = np.zeros(nr)
         deriv[1:nr-1] = (pp + fdprm.r[1:nr-1] * ppp) * prm.nu
         deriv /= fdprm.r
         deriv[nr-1] = 0.0        # Dirichlet at boundary. There is no change to initial value
         deriv[0] = deriv[1]      # Neuman at zero. [0] and [1] move lockstep having been set in y0
 
-        predict = y[:4] + h0*deriv[:4]
-
-        # print 'deriv: ', deriv[:4]/1000/1000
-        # print 'r: ', fdprm.r[:4], fdprm.dr[:4]
-        # print 'y: ', y[0:4]/1000/1000
-        # print 'predict y: ', predict / 1000/1000
-        # print 'ppp, pp: ', ppp[:4]/1000/1000, pp[:4]/1000/1000
-        # print 'ppp1, pp1: ', ppp1[1:5]/1000/1000, pp1[1:5]/1000/1000
-        # print
-
-        # plt.subplot(122)
-        # plt.plot(fdprm.r[0:10], deriv[0:10])
-        plt.figure(11)
-        # plt.subplot(121)
-        plt.plot(fdprm.r[1:10], y[1:10], 'o')
-
-
         return deriv
-
 
     y0 = np.ones(len(fdprm.r)) * prm.pi
     y0[0] = y0[1] + prm.Qnorm / fdprm.r[0] * fdprm.dr[0]    # Boundary cond set at beginning. derives will preserve it.
-    # print 'y0: ', y0[0:4]/1000000
-    # i = ode(rhs)
-    # i.set_integrator('vode', method='bde')
-    # i.set_initial_value(r, y0)
 
     # Loop over times
     h0 = 0.001
     y, output = odeint(rhs, y0, fdprm.tvals, h0=h0, hmax=2000.0, mxstep=2000, full_output=True)
-    #plt.plot(y)
 
-    plt.figure(12)
-    plt.title('PDE time evolution')
-    plt.xlabel('Space')
-    plt.ylabel('Function value')
-    plt.imshow(y, aspect='auto')
+
+    plot_result(fdprm.r, fdprm.tvals, y, fig=10, compare=True)
+
+def plot_result(r, tvals, yp, fig=10, compare=False):
+    """
+    Plot the results and compare with ei if desired
+    :param r: radius vector
+    :param tvals: time values to compare
+    :param yp: result of fd simulation
+    :param fig: figure number
+    :param compare: True to compare with analytic
+    :return:
+    """
+    plt.figure(fig)
+    plt.subplot(1,3,1)
+    plt.title('Well Pressure(MPa)')
+    plt.xlabel('Radius node')
+    plt.ylabel('Time step')
+    plt.imshow(yp, aspect='auto')
     plt.grid()
     plt.colorbar()
 
-    plt.figure(13)
-    plt.title('PDE time evolution')
-    plt.xlabel('Space')
-    plt.ylabel('Function value')
-    print np.shape(y)
-    for (i, t) in enumerate(fdprm.tvals):
-        plt.plot(fdprm.r, y[i])
+    ax=plt.subplot(1,3,2)
+    plt.title('FD Well Pressure')
+    plt.xlabel('Radius(m)')
+    plt.ylabel('Pressure(MPa)')
+    for (i, t) in enumerate(tvals):
+        plt.plot(r, yp[i] / 1000 / 1000, label=str(t/3600.0)+' hours')
     plt.grid()
-    #print y
+    plt.legend()
+
+    if compare:                     # Plot comparison with exact solution
+        plt.subplot(1,3,3, sharex=ax, sharey=ax)
+        plt.title('Exact Well Pressure')
+        plt.xlabel('Radius(m)')
+        plt.ylabel('Pressure(MPa)')
+        for (i, t) in enumerate(tvals):
+            Pexact = []
+            for (j, rp) in enumerate(r):
+                D = 1.0 / (4.0 * prm.nu)
+                s = D * rp**2 / t
+                Pexact.append((prm.pi + prm.p0 * ei(s)) / 1000 / 1000)       # In MPa
+            plt.plot(r, Pexact, label=str(t/3600.0)+' hours')
+        plt.grid()
+        plt.legend()
     plt.show()
-
-    print output['hu']
-
-
-
 
 def ei(x):
     """

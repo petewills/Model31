@@ -20,7 +20,7 @@ D = phi * mu_4k * c                         # phi * mu * C / ( 4.8 * k )        
 p0 = q * mu_4k / (3.1415 * h)               # Pressure multiplies exponential integral in Pa
 pi = 4.0*1000.0 * 1000.0                    # background reservoir pressure(Pa) prior to injection
 
-nu = k / (phi * mu * c)                     # fluid diffusivity constant. multiplies spatial term.
+nu = k / (phi * mu * cr)                     # fluid diffusivity constant. multiplies spatial term.
 Qnorm = q * mu / (2.0 * math.pi * k * h)    # injection provides boundary condition at r=0.
 
 # nu = 1.0
